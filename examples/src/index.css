@@ -1,0 +1,10 @@
+@font-face {
+　　font-family: "test";
+　　src: url('./font/iconfont.ttf?v=256#iefix') format('truetype');
+}
+
+div {
+    color : red;
+    background : url(./testimg.png);
+    font-family : "test";
+}

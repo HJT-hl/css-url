@@ -1,0 +1,19 @@
+{
+    "name": "test",
+    "version": "1.0.0",
+    "description": "a test project",
+    "main": "index.js",
+    "author": "alwaysonlinrtxm",
+    "license": "MIT",
+    "scripts": {
+        "clean": "rm -r ./dist",
+        "start": "yarn clean & rollup -c "
+    },
+    "devDependencies": {
+        "@rollup/plugin-html": "^0.2.0",
+        "postcss": "^8.2.4",
+        "rollup": "^2.38.0",
+        "rollup-plugin-img": "^1.0.6",
+        "rollup-plugin-postcss": "^4.0.0"
+    }
+}
