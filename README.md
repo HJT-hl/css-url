@@ -4,13 +4,13 @@ postcss 插件 , 用与处理 css 中 url 加载 图片和字体问题 。
 ## 安装
 
 ```sh
-yarn add css-url -D
+yarn add @sixian/css-url -D
 ```
 
 or
 
 ```sh
-npm install -D css-url
+npm i @sixian/css-url -D
 ```
 
 ## 使用
@@ -77,7 +77,7 @@ div {
 
 参数类型 : string  
 
-### cssOuput
+### `cssOuput`
 
 作用 :  由于无法直接获取 css 输出路径 , 导致 url 路径修改错误 。 您需要手动配置该选项 ，该选项请与你的 css 输出路径保持一致 。
 
