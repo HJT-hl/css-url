@@ -1,33 +1,38 @@
 {
-  "name": "@sixian/css-url",
-  "version": "0.0.2",
-  "description": "'handing css url keywords'",
-  "main": "index.js",
-  "module": "index.es.js",
-  "author": "siluxianren",
-  "license": "MIT",
-  "scripts": {
-    "build": "rollup -c ",
-    "prepublishOnly": "yarn build"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
-  "files": [
-    "index.js",
-    "index.es.js"
-  ],
-  "devDependencies": {
-    "@rollup/plugin-node-resolve": "^11.1.0",
-    "rollup": "^2.38.0",
-    "rollup-plugin-commonjs": "^10.1.0"
-  },
-  "dependencies": {
-    "hasha": "^5.2.2"
-  },
-  "keywords": [
-    "postcss",
-    "css-url",
-    "rollup-plugin-postcss"
-  ]
+    "name": "@sixian/css-url",
+    "version": "0.0.3",
+    "description": "'handing css url keywords'",
+    "main": "index.js",
+    "module": "index.es.js",
+    "author": "siluxianren",
+    "license": "MIT",
+    "scripts": {
+        "build": "rollup -c ",
+        "prepublishOnly": "yarn build"
+    },
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/"
+    },
+    "files": [
+        "index.js",
+        "index.es.js"
+    ],
+    "homepage": "https://github.com/HJT-hl/css-url",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HJT-hl/css-url"
+    },
+    "devDependencies": {
+        "@rollup/plugin-node-resolve": "^11.1.0",
+        "rollup": "^2.38.0",
+        "rollup-plugin-commonjs": "^10.1.0"
+    },
+    "dependencies": {
+        "hasha": "^5.2.2"
+    },
+    "keywords": [
+        "postcss",
+        "css-url",
+        "rollup-plugin-postcss"
+    ]
 }
