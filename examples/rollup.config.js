@@ -1,6 +1,6 @@
 const html = require( '@rollup/plugin-html');
 
-const {cssUrl,importLoader} = require( '../src/indexv1');
+const {cssUrl,importLoader} = require( '../src/index');
 const postcss = require( 'rollup-plugin-postcss')
 const path = require('path');
 module.exports = {
