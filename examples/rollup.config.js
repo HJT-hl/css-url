@@ -24,6 +24,7 @@ module.exports = {
             slash : false
           }),
         ],
+        use: ['less','import-url'],
         extract: path.resolve('dist/style/my-css.css'),
         loaders: [importLoader]
     }),
