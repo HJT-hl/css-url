@@ -28,7 +28,7 @@ function handleOptions({
 }){
     return function(file,output,extensions){
         return function(rule){
-            const urlList = rule.nodes.filter(item=>item.value &&  item.value.match(startUrlReg) || item.value.match(startUrlReg2))
+            const urlList = rule.nodes.filter(item=>item.value &&  (item.value.match(startUrlReg) || item.value.match(startUrlReg2)))
             urlList.forEach(item=>{
                 let urlRPath = RegExp.$2
                 if(urlRPath.match(startHttp)) return null;
