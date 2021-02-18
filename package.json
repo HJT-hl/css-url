@@ -1,6 +1,6 @@
 {
     "name": "@sixian/css-url",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "handing css url keywords",
     "main": "index.js",
     "module": "index.es.js",

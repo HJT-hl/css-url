@@ -128,7 +128,8 @@ div {
 demo 
 
 ```js
-  postcss({
+import {cssUrl} from '@sixian/css-url');  
+postcss({
         plugins: [
           cssUrl({
             imgOutput: 'dist/imgs',
@@ -149,7 +150,8 @@ demo
 使用 less/sass 等预处理器 @import 时，可导入 loader : importLoader 进行使用
 dome 
 ```js
- postcss({
+import {cssUrl,importLoader} from '@sixian/css-url');
+postcss({
       plugins: [
         cssUrl({
           imgOutput: 'dist/imgs',
