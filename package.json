@@ -1,7 +1,7 @@
 {
     "name": "@sixian/css-url",
-    "version": "0.0.4",
-    "description": "'handing css url keywords'",
+    "version": "1.0.0",
+    "description": "handing css url keywords",
     "main": "index.js",
     "module": "index.es.js",
     "author": "siluxianren",

@@ -291,7 +291,8 @@ function handleOptions({
 },root,file){
 
     function writeFile(urlRPath,nodeMap,originalValue,originalValueDeleteSuf){
-        const output = extToOutput$1(extname(urlRPath), imgOutput,imgExtensions,fontOutput,fontExtensions);
+        const ext = extname(urlRPath);
+        const output = extToOutput$1(ext, imgOutput,imgExtensions,fontOutput,fontExtensions);
         if(!output) return null;
         
         const urlAPath = resolve(file,'..',urlRPath);

@@ -17,11 +17,11 @@ module.exports = {
             imgOutput: 'dist/imgs',
             fontOutput: 'dist/font',
             cssOutput: 'dist/style',
-            imgExtensions : /\.(png|jpg|jpeg|gif|svg)$/,
-            fontExtensions : /\.(ttf|woff|woff2|eot)$/,
+            imgExtensions : /\.(png|jpg|jpeg|gif)$/,
+            fontExtensions : /\.(ttf|woff|woff2|eot|svg)$/,
             limit : 8192,
-            hash : false,
-            slash : false
+            hash : true,
+            slash : true,
           })
         ],
         use: ['less', 'import-url'],

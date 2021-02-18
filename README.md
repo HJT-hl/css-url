@@ -145,6 +145,31 @@ demo
     })
 ```
 
+### v1.0.0新增功能 
+使用 less/sass 等预处理器 @import 时，可导入 loader : importLoader 进行使用
+dome 
+```js
+ postcss({
+      plugins: [
+        cssUrl({
+          imgOutput: 'dist/imgs',
+          fontOutput: 'dist/font',
+          cssOutput: 'dist/style',
+          imgExtensions : /\.(png|jpg|jpeg|gif|svg)$/,
+          fontExtensions : /\.(ttf|woff|woff2|eot)$/,
+          limit : 8192,
+          hash : false,
+          slash : false
+        })
+      ],
+      use: ['less', 'import-url'],
+      extract: path.resolve('dist/style/my-css.css'),
+      loaders: [importLoader]
+  }),
+
+
+```
+
 
 
 ## License
