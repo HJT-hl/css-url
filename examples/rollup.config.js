@@ -22,11 +22,11 @@ module.exports = {
             limit : 8192,
             hash : false,
             slash : false
-          }),
+          })
         ],
-        use: ['less','import-url'],
+        use: ['less'],
         extract: path.resolve('dist/style/my-css.css'),
-        loaders: [importLoader]
+        loaders: []
     }),
     html()
   ]
