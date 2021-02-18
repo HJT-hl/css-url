@@ -187,10 +187,48 @@ hasha.fromFileSync = (filePath, options) => hasha(fs__default['default'].readFil
 
 var hasha_1 = hasha;
 
-const { extname, basename, relative,resolve  } = path__default['default'];
+const importReg = /@import\s+('|")(.*?)\1\s*;/;    
+const flagStart = 'start sixian-css-url import path:';
+const flagEnd = 'end sixian-css-url';
+var importUrl =  {
+    name : 'import-url',
+    test: /\.(sass|scss|less|styl|stylus|css)$/,
+    process({code,map}){
+        let index = 0, match = null, str = code;
+        while (match = str.match(importReg)){
+            const path = match[2];
+            const matchStrLength = match[0].length;
+          
+            index += match['index'];
+            code = code.slice(0,index) + comment(flagStart + path) + code.slice(index);
+            index += comment(flagStart + path).length + matchStrLength;
+            code = code.slice(0,index) + comment(flagEnd) + code.slice(index);
+            index += comment(flagEnd).length;
+            str = code.slice(index);
+        }
+        return {
+            code : code,
+            map : map
+        }
+    }
+};
+var flagStartReg = new RegExp(`${flagStart}(.*)`);
+var flagEndReg = new RegExp(`${flagEnd}(.*)`);
+
+function comment(str){
+    return `/*${str}*/`
+}
+
+var importLoader = {
+	importUrl: importUrl,
+	flagStartReg: flagStartReg,
+	flagEndReg: flagEndReg
+};
+
+const { extname, basename, relative,resolve ,dirname,join } = path__default['default'];
 const { statSync, readFileSync, createReadStream, createWriteStream, existsSync, mkdirSync } = fs__default['default'];
 
-
+const {importUrl: importUrl$1,flagStartReg: flagStartReg$1,flagEndReg: flagEndReg$1} = importLoader;
 const mimeMap = {
 	'.jpg':  'image/jpeg',
 	'.jpeg': 'image/jpeg',
@@ -209,20 +247,22 @@ const startUrlReg2 = /(^\s*)url\(([^'"]*?)\)/;
 const startHttp = /^\s*http/;
 // Exclude font file url ? and # suffixes
 const fontFileSuffixes = /[\?#].*$/;
+
+
 function handleOptions({
     limit,
     hash,
     slash,
     cssOutput
-}){
-    return function(file,output,extensions){
-        return function(rule){
-            const urlList = rule.nodes.filter(item=>item.value &&  item.value.match(startUrlReg) || item.value.match(startUrlReg2));
+},root,file){
+    handleImportComment(root);
+    return function(output,extensions){
+        root.nodes.forEach(item=>{
+            if(!(item.type === 'rule' || item.type === 'atrule')) return
+            const urlList = item.nodes.filter(item=>item.value &&  (item.value.match(startUrlReg) || item.value.match(startUrlReg2)));
             urlList.forEach(item=>{
                 let urlRPath = RegExp.$2;
                 if(urlRPath.match(startHttp)) return null;
-                
-                
                 urlRPath = urlRPath.replace(fontFileSuffixes,'');
                 const ext = extname(urlRPath);
                 if (!extensions.test(ext)) return null; 
@@ -269,13 +309,10 @@ function handleOptions({
                     
                 }
             });
-        }
+        });
     }
 }
-function rootRulesHandle(root,rule){
-    root.walkAtRules(rule);
-    root.walkRules(rule);
-}
+
 
 var cssUrl = ({
     imgOutput,
@@ -287,27 +324,55 @@ var cssUrl = ({
     hash = false,
     slash = false
 }) => {
-    const handlefile = handleOptions({limit,hash,slash,cssOutput});
     return {
         postcssPlugin: 'css-url',
         Once (root) {
             const file = root.source.input.file;
-            const ruleImg = handlefile(file,imgOutput,imgExtensions);
-            const ruleFont = handlefile(file,fontOutput,fontExtensions);
-            rootRulesHandle(root,ruleImg);
-            rootRulesHandle(root,ruleFont);
+            const handlefile = handleOptions({limit,hash,slash,cssOutput},root,file);
+            handlefile(imgOutput,imgExtensions);
+            handlefile(fontOutput,fontExtensions);
+   
         }
     }
    
 };
 
+function handleImportComment(root){
+    const nodes = root.nodes;
+    const deleteNodes = [];
+    for(let i=0;i<nodes.length;i++){
+        let flagStartMatch = null;
+        if(nodes[i].type === 'comment' && (flagStartMatch = nodes[i].text.match(flagStartReg$1))){
+            deleteNodes.push(i);
+            for(i++;!(nodes[i].text && nodes[i].text.match(flagEndReg$1));i++){
+                if(!nodes[i].nodes) continue;
+                const urlList = nodes[i].nodes.filter(item=>item.value &&  (item.value.match(startUrlReg) || item.value.match(startUrlReg2)));
+                urlList.forEach(item=>{
+                    let urlRPath = RegExp.$2;
+                    if(urlRPath.match(startHttp)) return null
+                    urlRPath = urlRPath.replace(fontFileSuffixes,'');
+                    item.value = item.value.replace(urlRPath,join(dirname(flagStartMatch[1]),urlRPath).replace('\\','/'));
+                });
+            }
+            deleteNodes.push(i);
+        }
+    }
+    root.nodes = root.nodes.filter((item,index)=>!deleteNodes.includes(index));
+    
+
+}
+
 var postcss = true;
+
+var importLoader$1 = importUrl$1;
 
 var src = {
 	cssUrl: cssUrl,
-	postcss: postcss
+	postcss: postcss,
+	importLoader: importLoader$1
 };
 
 exports.cssUrl = cssUrl;
 exports.default = src;
+exports.importLoader = importLoader$1;
 exports.postcss = postcss;
