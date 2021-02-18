@@ -1,5 +1,4 @@
 const { existsSync, mkdirSync} = require('fs');
-const { output } = require('../examples/rollup.config');
 module.exports.mkdir = function(outputPath) {
     if (!existsSync(outputPath)) {
         const dirs = outputPath.split('/');

@@ -214,10 +214,38 @@ var importLoader = {
 	flagEndReg: flagEndReg
 };
 
+const { existsSync, mkdirSync} = fs;
+var mkdir = function(outputPath) {
+    if (!existsSync(outputPath)) {
+        const dirs = outputPath.split('/');
+        for (let i = 0, dir = dirs[0]; i < dirs.length; i++, dir += `/${dirs[i]}`) {
+            if (dir !== '' && !existsSync(dir)) {
+                mkdirSync(dir);
+            }
+        }
+    }
+};
+
+var extToOutput = function(ext, imgOutput,imgExtensions,fontOutput,fontExtensions) {
+    let output = null;
+    if(imgExtensions.test(ext)){
+        output = imgOutput;
+    }else if(fontExtensions.test(ext) ) {
+        output = fontOutput;
+    }
+    return output
+};
+
+var utils = {
+	mkdir: mkdir,
+	extToOutput: extToOutput
+};
+
 const { extname, basename, relative,resolve ,dirname,join } = path;
-const { statSync, readFileSync, createReadStream, createWriteStream, existsSync, mkdirSync } = fs;
+const { statSync, readFileSync, createReadStream, createWriteStream } = fs;
 
 const {importUrl: importUrl$1,flagStartReg: flagStartReg$1,flagEndReg: flagEndReg$1} = importLoader;
+const { mkdir: mkdir$1, extToOutput: extToOutput$1} = utils;
 const mimeMap = {
 	'.jpg':  'image/jpeg',
 	'.jpeg': 'image/jpeg',
@@ -231,75 +259,129 @@ const mimeMap = {
     '.woff2': 'font/woff2',
 };
 
-const startUrlReg = /^\s*url\(\s*('|")(.*?)\1\s*\)/;
-const startUrlReg2 = /(^\s*)url\(([^'"]*?)\)/;
+const startUrlReg = /\s*url\(\s*('|")(.*?)\1\s*\)/;
+const startUrlReg2 = /(\s*)url\(([^'"]*?)\)/;
 const startHttp = /^\s*http/;
 // Exclude font file url ? and # suffixes
 const fontFileSuffixes = /[\?#].*$/;
+
+
 
 
 function handleOptions({
     limit,
     hash,
     slash,
-    cssOutput
+    cssOutput,
+    imgOutput,
+    imgExtensions,
+    fontOutput,
+    fontExtensions
 },root,file){
-    handleImportComment(root);
-    return function(output,extensions){
-        root.nodes.forEach(item=>{
-            if(!(item.type === 'rule' || item.type === 'atrule')) return
-            const urlList = item.nodes.filter(item=>item.value &&  (item.value.match(startUrlReg) || item.value.match(startUrlReg2)));
-            urlList.forEach(item=>{
-                let urlRPath = RegExp.$2;
-                if(urlRPath.match(startHttp)) return null;
-                urlRPath = urlRPath.replace(fontFileSuffixes,'');
-                const ext = extname(urlRPath);
-                if (!extensions.test(ext)) return null; 
-                
-                const urlAPath = resolve(file,'..',urlRPath);
-                if (statSync(urlAPath).size <= limit) { 
-    
-                    const ImgBase64 =  `data:${mimeMap[ext]};base64,${readFileSync(urlAPath, 'base64')}`; // use base64
-    
-                    item.value = `url('${ImgBase64}')`;
-    
-                } else {
-                    
-                    let outputPath = relative('./', output) || '';
-                    outputPath = outputPath.replace(/\\/g,'/');
-                    if (!existsSync(outputPath)) {
-                        const dirs = outputPath.split('/');
-                        for (let i = 0, dir = dirs[0]; i < dirs.length; i++, dir += `/${dirs[i]}`) {
-                        if (dir !== '' && !existsSync(dir)) {
-                            mkdirSync(dir);
-                        }
-                        }
-                    }
-    
-                    let name = basename(urlAPath);
-                    if (hash) {
-                        const code = readFileSync(urlAPath).toString();
-                        const hash = hasha_1(code, { algorithm: 'md5' });
-                        name =  `${basename(urlAPath, ext)}-${hash}${ext}`;
-                    }
-                    const outputFile = `${outputPath}/${name}`;
-                    createReadStream(urlAPath).pipe(createWriteStream(outputFile));
-                    
-                    if(cssOutput){
-                        let relativePath = relative(cssOutput,outputFile);
-                        relativePath = relativePath.replace(/\\/g,'/');
-                        item.value = item.value.replace(urlRPath,`${slash ? './' : ''}${relativePath}`);
-                    }else {
-                        let baseIndex = outputFile.indexOf('/');
-                        baseIndex = baseIndex !== -1 ? baseIndex + 1 : 0;
-                        item.value = item.value.replace(urlRPath,`${slash ? './' : ''}${outputFile.slice(baseIndex)}`);
-                    }
 
-                    
-                }
-            });
-        });
+    function writeFile(urlRPath,nodeMap,originalValue,originalValueDeleteSuf){
+        const output = extToOutput$1(extname(urlRPath), imgOutput,imgExtensions,fontOutput,fontExtensions);
+        if(!output) return null;
+        
+        const urlAPath = resolve(file,'..',urlRPath);
+        if (statSync(urlAPath).size <= limit) { 
+    
+            const ImgBase64 =  `data:${mimeMap[ext]};base64,${readFileSync(urlAPath, 'base64')}`; // use base64
+    
+            nodeMap.value = `url('${ImgBase64}')`;
+    
+        } else {
+            
+            let outputPath = relative('./', output) || '';
+            outputPath = outputPath.replace(/\\/g,'/');
+            mkdir$1(outputPath);
+            let name = basename(urlAPath);
+            if (hash) {
+                const code = readFileSync(urlAPath).toString();
+                const hash = hasha_1(code, { algorithm: 'md5' });
+                name =  `${basename(urlAPath, ext)}-${hash}${ext}`;
+            }
+            const outputFile = `${outputPath}/${name}`;
+    
+            createReadStream(urlAPath).pipe(createWriteStream(outputFile));
+            
+            if(cssOutput){
+                let relativePath = relative(cssOutput,outputFile);
+
+                relativePath = relativePath.replace(/\\/g,'/');
+                const urlIn = originalValue.replace(originalValueDeleteSuf,`${slash ? './' : ''}${relativePath}`);
+                nodeMap.value = nodeMap.value.replace(originalValue,urlIn);
+              
+            }else {
+                let baseIndex = outputFile.indexOf('/');
+                baseIndex = baseIndex !== -1 ? baseIndex + 1 : 0;
+                const urlIn = originalValue.replace(originalValueDeleteSuf,`${slash ? './' : ''}${outputFile.slice(baseIndex)}`);
+                nodeMap.value = nodeMap.value.replace(originalValue,urlIn);
+            }
+    
+            
+        }
     }
+
+    const nodes = root.nodes;
+    const deleteNodes = [];
+    for(let i=0;i<nodes.length;i++){
+        let flagStartMatch = null;
+        if(nodes[i].type === 'comment' && (flagStartMatch = nodes[i].text.match(flagStartReg$1))){
+            deleteNodes.push(i);
+            
+            for(i++;!(nodes[i].text && nodes[i].text.match(flagEndReg$1));i++){
+                if(!nodes[i].nodes) continue;
+
+                cycleFun(nodes[i].nodes,(urlRPathImport,nodeMap)=>{
+                    const urlRPathImportDeleteSuf = urlRPathImport.replace(fontFileSuffixes,'');
+
+                    const urlRPath = join(dirname(flagStartMatch[1]),urlRPathImportDeleteSuf).replace('\\','/');
+                    writeFile(urlRPath,nodeMap,urlRPathImport,urlRPathImportDeleteSuf);
+                });
+               
+            }
+            deleteNodes.push(i);
+        }
+
+        if(nodes[i].type === 'rule' || nodes[i].type === 'atrule'){
+            cycleFun(nodes[i].nodes,(urlRPath,nodeMap)=>{
+                const urlRPathImportDeleteSuf = urlRPath.replace(fontFileSuffixes,'');
+                writeFile(urlRPath,nodeMap,urlRPath,urlRPathImportDeleteSuf);
+            });
+        }
+
+       
+
+    }
+    root.nodes = root.nodes.filter((item,index)=>!deleteNodes.includes(index));
+
+
+  
+}
+
+
+
+
+function cycleFun(nodes,callback) {
+    const urlList = nodes.filter(item=>item.value && (item.value.match(startUrlReg) || item.value.match(startUrlReg2)));
+    urlList.forEach(item=>{
+        let nextStr = null;
+        for(
+            let match = (item.value.match(startUrlReg) || item.value.match(startUrlReg2));
+            match != null;
+            match = nextStr.match(startUrlReg) || nextStr.match(startUrlReg2)){
+                
+                nextStr = match['input'].slice(match['index']+match[0].length);
+                let urlRPath = match[2];
+
+                if(urlRPath.match(startHttp)) return null;
+                
+                callback(urlRPath,item);
+
+        }
+
+    });
 }
 
 
@@ -317,39 +399,13 @@ var cssUrl = ({
         postcssPlugin: 'css-url',
         Once (root) {
             const file = root.source.input.file;
-            const handlefile = handleOptions({limit,hash,slash,cssOutput},root,file);
-            handlefile(imgOutput,imgExtensions);
-            handlefile(fontOutput,fontExtensions);
-   
+            handleOptions({limit,hash,slash,cssOutput,imgOutput,imgExtensions,fontOutput,fontExtensions},root,file); 
         }
     }
    
 };
 
-function handleImportComment(root){
-    const nodes = root.nodes;
-    const deleteNodes = [];
-    for(let i=0;i<nodes.length;i++){
-        let flagStartMatch = null;
-        if(nodes[i].type === 'comment' && (flagStartMatch = nodes[i].text.match(flagStartReg$1))){
-            deleteNodes.push(i);
-            for(i++;!(nodes[i].text && nodes[i].text.match(flagEndReg$1));i++){
-                if(!nodes[i].nodes) continue;
-                const urlList = nodes[i].nodes.filter(item=>item.value &&  (item.value.match(startUrlReg) || item.value.match(startUrlReg2)));
-                urlList.forEach(item=>{
-                    let urlRPath = RegExp.$2;
-                    if(urlRPath.match(startHttp)) return null
-                    urlRPath = urlRPath.replace(fontFileSuffixes,'');
-                    item.value = item.value.replace(urlRPath,join(dirname(flagStartMatch[1]),urlRPath).replace('\\','/'));
-                });
-            }
-            deleteNodes.push(i);
-        }
-    }
-    root.nodes = root.nodes.filter((item,index)=>!deleteNodes.includes(index));
-    
 
-}
 
 var postcss = true;
 
