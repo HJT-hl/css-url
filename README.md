@@ -128,7 +128,7 @@ div {
 demo 
 
 ```js
-import {cssUrl} from '@sixian/css-url');  
+import {cssUrl} from '@sixian/css-url'  
 postcss({
         plugins: [
           cssUrl({
@@ -150,7 +150,7 @@ postcss({
 使用 less/sass 等预处理器 @import 时，可导入 loader : importLoader 进行使用
 dome 
 ```js
-import {cssUrl,importLoader} from '@sixian/css-url');
+import {cssUrl,importLoader} from '@sixian/css-url'
 postcss({
       plugins: [
         cssUrl({
