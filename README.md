@@ -16,7 +16,7 @@ npm i @sixian/css-url -D
 ## 使用
 
 ```js
-import { cssUrl } from 'css-url'
+import { cssUrl } from '@sixian/css-url'
 export default {
   plugins: [
     postcss({
